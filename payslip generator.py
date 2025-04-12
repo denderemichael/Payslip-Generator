@@ -20,9 +20,10 @@ print("✅ Cleaned Columns:", df.columns.tolist())
 df["Net Salary"] = df["Basic Salary"] + df["Allowance"] - df["Deduction"]
 print("\n✅ With Net Salary:\n", df[["Employees ID", "Name", "Net Salary"]])
 
-# ========== CREATE OUTPUT FOLDER ==========
-output_folder = "payslips"
-os.makedirs(output_folder, exist_ok=True)
+# ========== CREATE MAIN OUTPUT STRUCTURE ==========
+main_output_folder = "payslip_output"
+payslip_folder = os.path.join(main_output_folder, "payslips")
+os.makedirs(payslip_folder, exist_ok=True)
 
 # ========== EMAIL CONFIG ==========
 subject = "Your Monthly Payslip"
@@ -53,7 +54,7 @@ for index, row in df.iterrows():
     pdf.cell(200, 10, txt=f"Net Salary: ${net:.2f}", ln=True)
 
     # Create employee folder and file path
-    employee_folder = os.path.join(output_folder, name)
+    employee_folder = os.path.join(payslip_folder, name)
     os.makedirs(employee_folder, exist_ok=True)
     filename = f"{name}.pdf"
     filepath = os.path.join(employee_folder, filename)
@@ -88,7 +89,6 @@ for index, row in df.iterrows():
             server.sendmail(sender_email, receiver_email, message.as_string())
         print(f"✅ Email sent to {name} ({receiver_email})\n")
 
-        # Log success
         log_entries.append({
             "Name": name,
             "Email": receiver_email,
@@ -106,5 +106,7 @@ for index, row in df.iterrows():
 
 # ========== SAVE DATABASE FILE ==========
 log_df = pd.DataFrame(log_entries)
-log_df.to_csv("payslip_log.csv", index=False)
-print("🗃️ Payslip log saved as payslip_log.csv")
+log_path = os.path.join(main_output_folder, "payslip_log.csv")
+log_df.to_csv(log_path, index=False)
+print(f"🗃️ Payslip log saved as {log_path}")
+
